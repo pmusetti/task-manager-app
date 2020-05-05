@@ -2,7 +2,9 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
+//Define schema for Users model
 const userSchema = new mongoose.Schema({
   name:{
     type: String,
@@ -31,9 +33,40 @@ const userSchema = new mongoose.Schema({
         throw new Error('Password can not contain "password"')
       }
     }
+  },
+  tokens: [{
+    token: {
+      type: String,
+      required: true
+    }
 
-  }
+  }]
 })
+
+//Hiding Private Data
+//Este metodo no se llama en ningun lugar. Es utilizado para manipular los objetos JSON.
+//En este caso lo utilizamos para ocultar parte de la información de usuario como datos sensible
+//para luego enviar el objeto sin estos datos al cliente.
+userSchema.methods.toJSON = function () {
+  const user = this
+  const userObject = user.toObject()
+
+  delete userObject.password
+  delete userObject.tokens
+
+  return userObject
+}
+
+//Define generateAuthToken method for a instance of User schema
+userSchema.methods.generateAuthToken = async function () {
+  const user = this
+  const token = jwt.sign({_id: user._id.toString()}, 'randomstring')
+
+  user.tokens = user.tokens.concat({ token })
+  await user.save()
+
+  return token
+}
 
 //Define findByCredentials as a method of User schema
 userSchema.statics.findByCredentials = async (email, pass) => {
@@ -51,11 +84,14 @@ userSchema.statics.findByCredentials = async (email, pass) => {
 
 }
 
+//Define middleware function before save() method
+//Hash the plain text password before saving
 userSchema.pre('save', async function (next) {
   const user = this
   if (user.isModified('password')){
 
     user.password = await bcrypt.hash(user.password, 8)
+
   }
   next()
 })
