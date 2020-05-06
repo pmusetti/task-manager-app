@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const Task = require('../models/task')
 
 //Define schema for Users model
 const userSchema = new mongoose.Schema({
@@ -41,6 +42,15 @@ const userSchema = new mongoose.Schema({
     }
 
   }]
+}, {
+  timestamps: true
+})
+
+//Relación virtual entre usuarios y tareas.
+userSchema.virtual('tasks', {
+  ref: 'Tasks',
+  localField: '_id',
+  foreignField: 'owner'
 })
 
 //Hiding Private Data
@@ -95,6 +105,15 @@ userSchema.pre('save', async function (next) {
   }
   next()
 })
+
+//Delete user tasks when a user is removed
+userSchema.pre('remove', async function(next) {
+  const user = this
+  await Task.deleteMany({ owner: user._id })
+  next()
+
+})
+
 
 const User = mongoose.model('Users', userSchema)
 

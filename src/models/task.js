@@ -9,7 +9,17 @@ const userSchema = new mongoose.Schema({description:{
 completed:{
   type: Boolean,
   default: false
-}})
+}, 
+owner : {
+  type: mongoose.Schema.Types.ObjectId,
+  required : true, 
+  ref: 'User'
+}
+
+},
+{
+  timestamps: true
+})
 
 const Task = mongoose.model('Tasks', userSchema)
 

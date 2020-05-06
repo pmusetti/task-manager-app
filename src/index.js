@@ -24,6 +24,19 @@ app.listen(port, () => {
 })
 
 
+
+
+
+// const User = require('./models/user')
+
+// const main  = async () => {
+//   const user = await User.findById('5eb1dd76e2c782126db24a23')
+//   await user.populate('tasks').execPopulate()
+//   console.log(user.tasks)
+// }
+
+// main()
+
 // const jwt = require('jsonwebtoken')
 
 // const myFunction = async () => {

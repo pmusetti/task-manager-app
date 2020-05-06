@@ -1,10 +1,16 @@
 const express = require('express')
 const Task = require('../models/task')
+const auth = require('../middleware/auth')
 const routerTask = new express.Router()
 
 //Create new Task
-routerTask.post('/tasks', async (req,res) => {
-  const newTask = new Task(req.body)
+routerTask.post('/tasks', auth,  async (req,res) => {
+  //Crea una copia del body de la solicitud y le agrega un elemento que sera la ID del usuraio qu ela creo
+  //esta ID no vino en el cuerpo, pero la obtendremos con el middleware auth
+  const newTask = new Task({
+    ...req.body,
+    owner: req.user._id
+  })
 
   try {
     await newTask.save()
@@ -15,7 +21,7 @@ routerTask.post('/tasks', async (req,res) => {
 })
 
 //Update task by ID
-routerTask.patch('/tasks/:id', async (req, res) => {
+routerTask.patch('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
   const data = req.body
   const updates = Object.keys(data)
@@ -27,7 +33,10 @@ routerTask.patch('/tasks/:id', async (req, res) => {
   }
 
   try {
-    const task = await Task.findById(_id)
+    const task = await Task.findOne({_id, owner: req.user._id})
+    if (!task) {
+      return res.status(404).send('Task not found')
+    }
     updates.forEach((update) => task[update]= data[update] )
     await task.save()
     
@@ -39,10 +48,10 @@ routerTask.patch('/tasks/:id', async (req, res) => {
 
 
 //Read all tasks
-routerTask.get('/tasks', async (req, res) => {
+routerTask.get('/tasks', auth, async (req, res) => {
 
   try {
-    const tasks = await Task.find({})
+    const tasks = await Task.find({owner: req.user._id})//Encuentra todas las tareas creadas por el usuario logueado
     res.status(201).send(tasks)
   } catch (e) {
     res.status(500).send(e)
@@ -50,10 +59,10 @@ routerTask.get('/tasks', async (req, res) => {
 })
 
 //Read single task by ID
-routerTask.get('/tasks/:id', async (req, res) => {
+routerTask.get('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
   try {
-    const task = await Task.findById(_id)
+    const task = await Task.findOne({_id, owner: req.user._id})//Encuentra la tarea por su id, solo si el usuario logueado fue quien la creo.
     if (!task){
       res.status(404).send({error: 'Task Not Found!'})
     }
@@ -63,11 +72,12 @@ routerTask.get('/tasks/:id', async (req, res) => {
   }
 })
 
-routerTask.delete('/tasks/:id', async (req, res) => {
+//Delete task by id
+routerTask.delete('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
   
   try{
-  const task = await Task.findByIdAndDelete(_id)
+  const task = await Task.findOneAndDelete({_id, owner: req.user._id})
   if (!task){
     return res.status(404).send({error: 'Invalid task ID'})
   }
