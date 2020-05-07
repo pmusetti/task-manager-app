@@ -48,17 +48,31 @@ routerTask.patch('/tasks/:id', auth, async (req, res) => {
 
 
 //Read tasks filtered
+//GET/tasks?completed=true
+//GET/tasks?limit=2&skip=7
+//GET/tasks?sortBy=createdAt:desc
 routerTask.get('/tasks', auth, async (req, res) => {
   const criteria = {owner: req.user._id}
   const limit = parseInt(req.query.limit)//Limite de resultados a devolver
   const skip = parseInt(req.query.skip)//offset de los resultados a traer
+  const sort = {}
+  if (req.query.sortBy){
+    const parts = req.query.sortBy.split(':')
+    sort[parts[0]] =  parts[1] === 'desc' ? -1 : 1
+    console.log(sort)
+  }
+  
 
   if (req.query.completed){
     criteria.completed = req.query.completed === 'true'
   }
 
   try {
-    const tasks = await Task.find(criteria).limit(limit).skip(skip)//Encuentra todas las tareas creadas por el usuario logueado
+    const tasks = await Task.find(criteria)
+    .limit(limit)
+    .skip(skip)
+    .sort(sort)//Encuentra todas las tareas creadas por el usuario logueado
+    
     res.status(200).send(tasks)
   } catch (e) {
     res.status(500).send(e)
