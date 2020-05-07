@@ -46,7 +46,6 @@ routerUser.patch('/users/me', auth, async (req,res) => {
 
 //Login user by credentials
 routerUser.post('/users/login', async (req, res) => {
-
   try {
     const email = req.body.email //obtengo el email que viene en el json
     const pass = req.body.password //obtengo el password que viene en el json

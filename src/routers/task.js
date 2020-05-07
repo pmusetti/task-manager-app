@@ -47,12 +47,17 @@ routerTask.patch('/tasks/:id', auth, async (req, res) => {
 })
 
 
-//Read all tasks
+//Read tasks filtered
 routerTask.get('/tasks', auth, async (req, res) => {
+  const criteria = {owner: req.user._id}
+
+  if (req.query.completed  ){
+    criteria.completed = req.query.completed === 'true'
+  }
 
   try {
-    const tasks = await Task.find({owner: req.user._id})//Encuentra todas las tareas creadas por el usuario logueado
-    res.status(201).send(tasks)
+    const tasks = await Task.find(criteria)//Encuentra todas las tareas creadas por el usuario logueado
+    res.status(200).send(tasks)
   } catch (e) {
     res.status(500).send(e)
   }
