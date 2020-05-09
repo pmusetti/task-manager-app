@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const Task = require('../models/task')
 
+//Define el formato que tendra cada instancia de un usuario en la base de datos.
 //Define schema for Users model
 const userSchema = new mongoose.Schema({
   name:{
@@ -71,9 +72,12 @@ userSchema.methods.toJSON = function () {
   return userObject
 }
 
-//Define generateAuthToken method for a instance of User schema
+//Define generateAuthToken method for an instance of User schema
+//Este metodo se llama al crear un usuario o loguearse, lo que hace es generar un token
+//y guardarlo en una matriz en la base de datos para luego autenticar usuarios.
 userSchema.methods.generateAuthToken = async function () {
   const user = this
+  //Genera el token a partir de la id y un string aleatorio. Se le puede agregar caducidad.
   const token = jwt.sign({_id: user._id.toString()}, 'randomstring')
 
   user.tokens = user.tokens.concat({ token })
@@ -83,42 +87,41 @@ userSchema.methods.generateAuthToken = async function () {
 }
 
 //Define findByCredentials as a method of User schema
+//Este metodo se llama solo para el logueo de usuarios.
 userSchema.statics.findByCredentials = async (email, pass) => {
   const user = await User.findOne({email})
   if (!user){
     throw new Error('Invalid username or password!')
   }
   const isMatch = await bcrypt.compare(pass, user.password)
-  
   if(!isMatch){
     throw new Error ('Unable to login')
   }
   return user
-
-
 }
 
 //Define middleware function before save() method
 //Hash the plain text password before saving
+//Este middleware se ejecuta previo a cada llamada de user.save()
+//Se utiliza para encriptar el password.
 userSchema.pre('save', async function (next) {
   const user = this
   if (user.isModified('password')){
-
     user.password = await bcrypt.hash(user.password, 8)
-
   }
   next()
 })
 
 //Delete user tasks when a user is removed
+//Este middleware se ejectuta previo a la llamada de user.remove()
+//Elimina de la coleccion 'Tasks' de la base de datos task-manager-api, todas las tareas que este usuario tenga asociadas.
 userSchema.pre('remove', async function(next) {
   const user = this
   await Task.deleteMany({ owner: user._id })
   next()
-
 })
 
-
+//Define el esquema de usuarios para la coleccion 'Users' de la base task-manager-api 
 const User = mongoose.model('Users', userSchema)
 
 module.exports = User

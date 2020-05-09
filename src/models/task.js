@@ -1,6 +1,5 @@
-//Define a Task model
 const mongoose = require('mongoose')
-
+//Define el modelo de la coleccion Tasks de la base de datos task-manager-api
 const userSchema = new mongoose.Schema({description:{
   type: String,
   trim: true,
@@ -15,7 +14,6 @@ owner : {
   required : true, 
   ref: 'User'
 }
-
 },
 {
   timestamps: true

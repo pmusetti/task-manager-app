@@ -6,40 +6,9 @@ const routerTask = require('./routers/task')
 const app = express()
 const port = process.env.PORT || 3000
 
-//without middelware: new request -> run route handler
-//
-//with middelware:    new request -> do something like check jwt -> run route handler
-
-
-
-app.use(express.json())
-
-app.use(routerUser)
-
-app.use(routerTask)
-
-
-
-// Upload file to server
-const multer = require('multer')
-const upload = multer({
-  dest: 'images', //folder destination
-  limits: {
-    fileSize: 1000000 //size limit in bytes
-  },
-  fileFilter(req, file, callback) {
-    if (!file.originalname.match(/\.(doc|docx)$/)){
-      return callback(new Error ('Pease upload a Word Document'))
-    }
-    callback(undefined, true)
-    // callback(new Error('File must be a PDF'))
-    // callback(undefined, true)
-    // callback(undefined, false)
-  }
-})
-
-
-
+app.use(express.json())//Express builtin middleware to recognize incoming Request Object as a JSON Object.
+app.use(routerUser)//Custom module for handle users requests
+app.use(routerTask)//Custom modulo for handle tasks request
 
 app.listen(port, () => {
   console.log('Server running in port ' + port)
