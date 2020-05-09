@@ -19,6 +19,28 @@ app.use(routerUser)
 app.use(routerTask)
 
 
+
+// Upload file to server
+const multer = require('multer')
+const upload = multer({
+  dest: 'images', //folder destination
+  limits: {
+    fileSize: 1000000 //size limit in bytes
+  },
+  fileFilter(req, file, callback) {
+    if (!file.originalname.match(/\.(doc|docx)$/)){
+      return callback(new Error ('Pease upload a Word Document'))
+    }
+    callback(undefined, true)
+    // callback(new Error('File must be a PDF'))
+    // callback(undefined, true)
+    // callback(undefined, false)
+  }
+})
+
+
+
+
 app.listen(port, () => {
   console.log('Server running in port ' + port)
 })
@@ -48,3 +70,26 @@ app.listen(port, () => {
 // }
 
 // //myFunction()
+
+
+//// Upload file to server
+// const multer = require('multer')
+// const upload = multer({
+//   dest: 'images', //folder destination
+//   limits: {
+//     fileSize: 1000000 //size limit in bytes
+//   },
+//   fileFilter(req, file, callback) {
+//     if (!file.originalname.endsWith('.pdf')){
+//       return callback(new Error ('Pease upload a PDF'))
+//     }
+//     callback(undefined, true)
+//     // callback(new Error('File must be a PDF'))
+//     // callback(undefined, true)
+//     // callback(undefined, false)
+//   }
+// })
+
+// app.post('/upload', upload.single('upload'), (req, res) => {
+//   res.send()
+// })

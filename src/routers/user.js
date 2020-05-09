@@ -1,4 +1,6 @@
 const express = require('express')
+const multer = require('multer')
+const sharp = require('sharp')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 const routerUser = new express.Router()
@@ -114,6 +116,65 @@ routerUser.delete('/users/me', auth, async (req, res) => {
 }
 
 })
+
+//Upload profile photo
+const upload = multer({
+  //si la opcion "dest" se declara, el archivo se guardara en la ruta indicada
+  //en este caso ./images/avatar
+  //En cambio, si esta opcion no se declara, multer pasara el archivo como parametro a la funcion
+  // de calback en el metodo post donde es llamada. 
+
+  //dest: 'images/avatar',
+  limits: { fileSize: 1000000 },
+  fileFilter(req, file, callback){
+    if(!file.originalname.match(/\.(jpeg|jpg|png)/)){
+      return callback(new Error ('Pleas upload a jpg or png file!'))
+    }
+    callback(undefined, true)
+  }
+})
+
+//Upload avatar
+routerUser.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+  const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 290 }).png().toBuffer()
+
+  req.user.avatar = buffer
+  await req.user.save()
+  res.send()
+}, (error, req, res, next) => { //Arrow function to response only with personal msg instead an html document 
+  res.status(400).send( {error: error.message})
+})
+
+
+//Delete avatar
+routerUser.delete('/users/me/avatar', auth, async (req, res) => {
+  try {
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send()
+  } catch (e) {
+    res.status(400).send({error: 'No posible!'})
+  }
+})
+
+routerUser.get('/users/:id/avatar', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+    
+    if (!user || !user.avatar){
+      throw new Error('no se puede mostrar')
+    }
+
+    res.set('Content-Type', 'image/png')
+    res.send(user.avatar)
+
+  } catch (e) {
+    res.status(404).send()
+  }
+})
+
+
+
 
 module.exports = routerUser
 

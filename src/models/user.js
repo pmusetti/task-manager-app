@@ -35,6 +35,9 @@ const userSchema = new mongoose.Schema({
       }
     }
   },
+  avatar: {
+    type: Buffer
+  },
   tokens: [{
     token: {
       type: String,
@@ -56,13 +59,14 @@ userSchema.virtual('tasks', {
 //Hiding Private Data
 //Este metodo no se llama en ningun lugar. Es utilizado para manipular los objetos JSON.
 //En este caso lo utilizamos para ocultar parte de la información de usuario como datos sensible
-//para luego enviar el objeto sin estos datos al cliente.
+//Cuando alguien solicite el perfil del usuario, estos datos no se enviaran en el json de respuesta.
 userSchema.methods.toJSON = function () {
   const user = this
   const userObject = user.toObject()
 
   delete userObject.password
   delete userObject.tokens
+  delete userObject.avatar
 
   return userObject
 }
