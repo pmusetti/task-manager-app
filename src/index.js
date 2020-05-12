@@ -1,11 +1,13 @@
 const express = require('express')
+var cors = require('cors')
 require('./db/mongoose')
-const routerUser = require('./routers/user')
-const routerTask = require('./routers/task')
+const routerUser = require('./controllers/user')
+const routerTask = require('./controllers/task')
 
 const app = express()
-const port = process.env.PORT || 3000
 
+const port = process.env.PORT || 3000
+app.use(cors())
 app.use(express.json())//Express builtin middleware to recognize incoming Request Object as a JSON Object.
 app.use(routerUser)//Custom module for handle users requests
 app.use(routerTask)//Custom modulo for handle tasks request
@@ -19,7 +21,6 @@ app.listen(port, () => {
 
 
 // const User = require('./models/user')
-
 // const main  = async () => {
 //   const user = await User.findById('5eb1dd76e2c782126db24a23')
 //   await user.populate('tasks').execPopulate()
@@ -27,6 +28,10 @@ app.listen(port, () => {
 // }
 
 // main()
+
+
+
+
 
 // const jwt = require('jsonwebtoken')
 

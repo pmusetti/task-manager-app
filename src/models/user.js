@@ -10,6 +10,7 @@ const Task = require('../models/task')
 const userSchema = new mongoose.Schema({
   name:{
     type: String,
+    unique: true,
     required: true,
     trim: true,
     lowercase: true
@@ -48,7 +49,11 @@ const userSchema = new mongoose.Schema({
   }]
 }, {
   timestamps: true
-})
+}//,
+//{ autoIndex: true }
+)
+
+//userSchema.index({ name: 1, email: 1 }, { unique: true});
 
 //Relación virtual entre usuarios y tareas.
 userSchema.virtual('tasks', {
@@ -59,8 +64,9 @@ userSchema.virtual('tasks', {
 
 //Hiding Private Data
 //Este metodo no se llama en ningun lugar. Es utilizado para manipular los objetos JSON.
-//En este caso lo utilizamos para ocultar parte de la información de usuario como datos sensible
-//Cuando alguien solicite el perfil del usuario, estos datos no se enviaran en el json de respuesta.
+//En este caso lo utilizamos para ocultar parte de la información de usuario como datos sensibles
+//Cuando alguien solicite el perfil del usuario, los datos aqui borrados no se enviaran en el json de respuesta pero no desaparecen de la base de datos.
+//Simplemente se ominten en la respuesta.
 userSchema.methods.toJSON = function () {
   const user = this
   const userObject = user.toObject()
@@ -82,7 +88,6 @@ userSchema.methods.generateAuthToken = async function () {
 
   user.tokens = user.tokens.concat({ token })
   await user.save()
-
   return token
 }
 

@@ -1,4 +1,6 @@
 const express = require('express')
+const upload = require('../utils/upload')
+const sharp = require('sharp')
 const Task = require('../models/task')
 const auth = require('../middleware/auth')
 const routerTask = new express.Router()
@@ -43,6 +45,25 @@ routerTask.patch('/tasks/:id', auth, async (req, res) => {
     res.status(201).send(task)
   } catch (e) {
     res.status(400).send(e)
+  }
+})
+
+//Upload image
+routerTask.post('/tasks/:id/image', auth, upload.single('image'), async (req, res) => {
+  const _id = req.params.id
+  const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 290 }).png().toBuffer() 
+  try {
+    
+    const task = await Task.findOne({_id, owner: req.user.id})
+    if (!task) {
+      return res.status(404).send('Task not found')
+    }
+    
+    task.image = buffer
+    await task.save()
+    res.status(200).send()
+  } catch (e) {
+    res.status(404).send()
   }
 })
 

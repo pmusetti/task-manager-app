@@ -11,9 +11,9 @@ routerUser.post('/users',async (req, res) => {
   try{
     await user.save()
     const token = await user.generateAuthToken()
-    res.status(201).send({user, token})
+    res.status(201).send({ user, token })
   }catch(e){
-    res.status(400).send()
+    res.status(400).send(e.errmsg)
   }
 }) 
 
@@ -82,7 +82,6 @@ routerUser.post('/users/logoutAll', auth, async (req, res) => {
   }
 })
 
-
 //Read profile
 routerUser.get('/users/me', auth,  async (req, res) => {
   //Cuando recibo esta petición, dentro del encabezado viene el token
@@ -120,11 +119,11 @@ const upload = multer({
 //Upload avatar
 routerUser.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
   //Se utiliza sharp para dar formato a la imagen y cambiar su extension
-  const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 290 }).png().toBuffer() 
+  const buffer = await sharp(req.file.buffer).resize({ width: 200, height: 200 }).png().toBuffer() 
 
   req.user.avatar = buffer
   await req.user.save()
-  res.send()
+  res.send('Update Avatar succesfully!')
 }, (error, req, res, next) => { //Arrow function to response only with personal msg instead an html document with sensible data 
   res.status(400).send( {error: error.message})
 })
