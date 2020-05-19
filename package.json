@@ -1,7 +1,6 @@
 {
   "name": "task-manager",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -23,5 +22,14 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmusetti/task-manager-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pmusetti/task-manager-app/issues"
+  },
+  "homepage": "https://github.com/pmusetti/task-manager-app#readme",
+  "description": ""
 }
