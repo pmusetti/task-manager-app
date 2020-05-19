@@ -7,10 +7,19 @@ const routerTask = require('./controllers/task')
 const app = express()
 
 const port = process.env.PORT || 3000
+
+
+
+
+const path = require('path')
+const publicFolderPath = path.join(__dirname, '../public')
+app.use(express.static(publicFolderPath))
+
+
 app.use(cors())
 app.use(express.json())//Express builtin middleware to recognize incoming Request Object as a JSON Object.
-app.use(routerUser)//Custom module for handle users requests
-app.use(routerTask)//Custom modulo for handle tasks request
+app.use(routerUser)//Custom module for handle users requests (Controller)
+app.use(routerTask)//Custom modulo for handle tasks request (Controller)
 
 app.listen(port, () => {
   console.log('Server running in port ' + port)

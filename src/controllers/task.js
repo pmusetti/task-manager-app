@@ -7,10 +7,10 @@ const routerTask = new express.Router()
 
 //Create new Task
 routerTask.post('/tasks', auth,  async (req,res) => {
-  //Crea una copia del JSON de la solicitud y le agrega un elemento 'key:value' que sera la ID del usuario que la creo
-  //esta ID no vino en el cuerpo, pero la obtendremos con el middleware auth
+  /*Crea una copia del JSON de la solicitud y le agrega un elemento 'key:value' que sera la ID del usuario que la creo
+  esta ID no vino en el cuerpo, pero la obtendremos con el middleware auth */
   const newTask = new Task({
-    ...req.body,
+    ...req.body, //Copia el body
     owner: req.user._id
   })
 
@@ -22,9 +22,9 @@ routerTask.post('/tasks', auth,  async (req,res) => {
   }
 })
 
-//Update task by ID
-//Actualiza un task segun su id. No la id de usuario sino la id de la task
-//Esta id viene en la url
+/*Update task by ID
+Actualiza un task segun su id. No la id de usuario sino la id de la task
+Esta id viene en la url */
 routerTask.patch('/tasks/:id', auth, async (req, res) => {
   const _id = req.params.id
   const data = req.body
@@ -72,9 +72,9 @@ routerTask.post('/tasks/:id/image', auth, upload.single('image'), async (req, re
 //GET/tasks?completed=true
 //GET/tasks?limit=2&skip=7
 //GET/tasks?sortBy=createdAt:desc
-//El usuario puede hacer una busqueda de tareas con diferentes criterios
-//Ver solo tareas completas, o incompletas, ordenadas por orden ascendente o descendente de creacion.
-//Puede elegir tambien cuantas ver por cada solicitud y a partir de cual indice.(Paginacion)
+/*El usuario puede hacer una busqueda de tareas con diferentes criterios
+  Ver solo tareas completas, o incompletas, ordenadas por orden ascendente o descendente de creacion.
+  Puede elegir tambien cuantas ver por cada solicitud y a partir de cual indice.(Paginacion) */
 routerTask.get('/tasks', auth, async (req, res) => {
   const criteria = {owner: req.user._id}//El primer criterio es que pertenezcan al usuario logueado
   const limit = parseInt(req.query.limit)//Limite de resultados a devolver que viene en la url

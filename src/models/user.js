@@ -62,11 +62,11 @@ userSchema.virtual('tasks', {
   foreignField: 'owner'
 })
 
-//Hiding Private Data
-//Este metodo no se llama en ningun lugar. Es utilizado para manipular los objetos JSON.
-//En este caso lo utilizamos para ocultar parte de la información de usuario como datos sensibles
-//Cuando alguien solicite el perfil del usuario, los datos aqui borrados no se enviaran en el json de respuesta pero no desaparecen de la base de datos.
-//Simplemente se ominten en la respuesta.
+/*Hiding Private Data
+Este metodo no se llama en ningun lugar. Es utilizado para manipular los objetos JSON.
+Se utiliza para ocultar en la respuesta parte de la información de usuario como datos sensibles
+Cuando alguien solicite el perfil del usuario, los datos aqui borrados no se enviaran en el json de respuesta pero no desaparecen de la base de datos.
+Simplemente se ominten en la respuesta. */
 userSchema.methods.toJSON = function () {
   const user = this
   const userObject = user.toObject()
@@ -79,8 +79,8 @@ userSchema.methods.toJSON = function () {
 }
 
 //Define generateAuthToken method for an instance of User schema
-//Este metodo se llama al crear un usuario o loguearse, lo que hace es generar un token
-//y guardarlo en una matriz en la base de datos para luego autenticar usuarios.
+/*Este metodo se llama al crear un usuario o loguearse, lo que hace es generar un token
+y guardarlo en una matriz en la base de datos para luego autenticar usuarios. */
 userSchema.methods.generateAuthToken = async function () {
   const user = this
   //Genera el token a partir de la id y un string aleatorio. Se le puede agregar caducidad.
@@ -89,6 +89,12 @@ userSchema.methods.generateAuthToken = async function () {
   user.tokens = user.tokens.concat({ token })
   await user.save()
   return token
+}
+
+//Este motodo se llama al loguearse, lo que hace es devolver la imagen de avatar.
+userSchema.methods.returnAvatar = async function () {
+  const user = this
+  return user.avatar
 }
 
 //Define findByCredentials as a method of User schema
@@ -107,8 +113,8 @@ userSchema.statics.findByCredentials = async (email, pass) => {
 
 //Define middleware function before save() method
 //Hash the plain text password before saving
-//Este middleware se ejecuta previo a cada llamada de user.save()
-//Se utiliza para encriptar el password.
+/*Este middleware se ejecuta previo a cada llamada de user.save()
+Se utiliza para encriptar el password. */
 userSchema.pre('save', async function (next) {
   const user = this
   if (user.isModified('password')){
@@ -118,8 +124,8 @@ userSchema.pre('save', async function (next) {
 })
 
 //Delete user tasks when a user is removed
-//Este middleware se ejectuta previo a la llamada de user.remove()
-//Elimina de la coleccion 'Tasks' de la base de datos task-manager-api, todas las tareas que este usuario tenga asociadas.
+/*Este middleware se ejectuta previo a la llamada de user.remove()
+  Elimina de la coleccion 'Tasks' de la base de datos task-manager-api, todas las tareas que este usuario tenga asociadas. */
 userSchema.pre('remove', async function(next) {
   const user = this
   await Task.deleteMany({ owner: user._id })

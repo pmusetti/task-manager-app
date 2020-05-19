@@ -5,6 +5,14 @@ const User = require('../models/user')
 const auth = require('../middleware/auth')
 const routerUser = new express.Router()
 
+
+
+
+routerUser.get('/', async (req, res) => {
+  res.render('index.html')
+
+})
+
 //Create new user
 routerUser.post('/users',async (req, res) => {
   const user = new User(req.body)
@@ -21,9 +29,9 @@ routerUser.post('/users',async (req, res) => {
 routerUser.patch('/users/me', auth, async (req,res) => {
   const updates = Object.keys(req.body) //extraigo solo las claves del objeto JSON que envía el cliente
   const allowedUpdates = ['name', 'password', 'email'] //Defino una matriz con los nombres de las claves que se permito modificar
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update)) //verifico si 
-  //alguna de las claves coincide con algún elemento de la lista de los permitidos
-  //Si algún elemento coincide, ivValidOperation será TRUE caso contrario sera FALSE
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update)) 
+  /*verifico si alguna de las claves coincide con algún elemento de la lista de los permitidos
+  Si algún elemento coincide, ivValidOperation será TRUE caso contrario sera FALSE*/
   
   if (!isValidOperation){
     //Devuelvo un error si no hay coincidencias y dejo de ejecutar la funcion
@@ -48,7 +56,8 @@ routerUser.post('/users/login', async (req, res) => {
     const pass = req.body.password //obtengo el password que viene en el json
     const user = await User.findByCredentials(email, pass) //busco el usuario por email y pass
     const token = await user.generateAuthToken()//genero un token
-    res.status(200).send({ user, token }) //devuelvo 200(OK) usuario y token
+    const avatar = await user.returnAvatar()
+    res.status(200).send({ user, token, avatar }) //devuelvo 200(OK) usuario y token
   } catch (e) {
     res.status(500).send({ error: 'Invalid username or password! Try Again' })
   }
@@ -57,9 +66,9 @@ routerUser.post('/users/login', async (req, res) => {
 //Logout user by 
 routerUser.post('/users/logout', auth, async (req, res) => {
   try {
-    //Filtro la lista de tokens para remover el token actual
-    //de esta forma el usuario quedara sin permisos pues su token
-    //ya no pertenece a la lista de tokens validos
+    /*Filtro la lista de tokens para remover el token actual
+      de esta forma el usuario quedara sin permisos pues su token
+      ya no pertenece a la lista de tokens validos */
     req.user.tokens = req.user.tokens.filter((token) => {
       return token.token !== req.token //pone en req.user.tokens cada token diferente al actual
     })
@@ -73,7 +82,7 @@ routerUser.post('/users/logout', auth, async (req, res) => {
 //Logout all sessions
 routerUser.post('/users/logoutAll', auth, async (req, res) => {
   try {
-    //Para cerrar todas las sessiones (dispositivos), elimino todos los tokens
+    //Para cerrar todas las sesiones (dispositivos), elimino todos los tokens
     req.user.tokens = []
     await req.user.save()
     res.send()
@@ -84,9 +93,9 @@ routerUser.post('/users/logoutAll', auth, async (req, res) => {
 
 //Read profile
 routerUser.get('/users/me', auth,  async (req, res) => {
-  //Cuando recibo esta petición, dentro del encabezado viene el token
-  //con el middleware "auth", busco el usuario en particular y lo devuelvo.
-  //de esta manera solo devuelvo el perfil del usuario que realizo la peticion
+  /*Con la peticion /users/me viene dentro del encabezado el token.
+  Con el middleware "auth" busco el usuario en particular y lo devuelvo.
+  De esta manera solo devuelvo el perfil del usuario que realizo la peticion*/
   res.send(req.user)
 })
 
@@ -103,9 +112,9 @@ routerUser.delete('/users/me', auth, async (req, res) => {
 
 //Upload profile photo
 const upload = multer({
-  //si la opcion "dest" se declara, el archivo se guardara en la ruta indicada
-  //En cambio, si esta opcion no se declara, multer pasara el archivo como parametro a la funcion
-  // de calback en el metodo post donde es llamada. 
+  /*Si la opcion "dest" se declara, el archivo se guardara en la ruta indicada
+  En cambio, si esta opcion no se declara, multer pasara el archivo como parametro a la funcion
+   de calback en el metodo post donde es llamada. */
   //dest: 'images/avatar',
   limits: { fileSize: 1000000 }, //limite de tamaño en bytes
   fileFilter(req, file, callback){//define el tipo de archivo admitido
@@ -123,8 +132,9 @@ routerUser.post('/users/me/avatar', auth, upload.single('avatar'), async (req, r
 
   req.user.avatar = buffer
   await req.user.save()
-  res.send('Update Avatar succesfully!')
-}, (error, req, res, next) => { //Arrow function to response only with personal msg instead an html document with sensible data 
+  //res.set('Content-Type', 'image/png')
+  res.send({buffer})
+  }, (error, req, res, next) => { //Arrow function to response only with personal msg instead an html document with sensible data 
   res.status(400).send( {error: error.message})
 })
 
@@ -140,7 +150,7 @@ routerUser.delete('/users/me/avatar', auth, async (req, res) => {
   }
 })
 
-//Sirve la imagend del avatar
+//Sirve la imagen del avatar
 routerUser.get('/users/:id/avatar', async (req, res) => {
   try {
     const user = await User.findById(req.params.id)// Lee la id que viene en la url
